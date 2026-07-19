@@ -29,7 +29,7 @@ def load_data():
         credentials=credentials,
         project=st.secrets["gcp_service_account"]["project_id"]
     )
-    df = client.query(QUERY).to_dataframe()
+    df = client.query(QUERY).to_dataframe(create_bqstorage_client=False)
 
     df["session_duration_seconds"] = df["session_duration_seconds"].fillna(0)
     df["pages_visited"] = df["pages_visited"].fillna(0)
