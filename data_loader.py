@@ -20,7 +20,7 @@ WHERE
   AND _TABLE_SUFFIX BETWEEN '20160801' AND '20170801'
 """
 
-@st.cache_data
+@st.cache_data(ttl=3600, show_spinner="Loading 900K rows of GA data from BigQuery...")
 def load_data():
     credentials = service_account.Credentials.from_service_account_info(
         st.secrets["gcp_service_account"]
