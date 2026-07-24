@@ -2,7 +2,6 @@
 #2. Pick a launch date and tag sessions
 #3. Calculate weeks since launch
 
-
 import pandas as pd
 import numpy as np
 
@@ -14,22 +13,43 @@ FEATURES = [
 ]
 
 def simulate_experiment(df, feature_name, launch_date="2017-01-01", seed=42):
-    """
-    Simulates an AI feature launch experiment.
-    - Splits users into control and treatment groups
-    - Tags sessions as pre or post launch
-    - Returns the full dataframe with experiment columns added
-    """
-
     np.random.seed(seed)
 
-    # get all unique users and randomly assign to control or treatment
+    # Feature-specific effect sizes (realistic but varied)
+    feature_effects = {
+        "AI Comment Suggestions": {
+            "session_boost": 0.08,
+            "conversion_boost": 0.002,
+            "quality_boost": 0.10
+        },
+        "AI Generated Captions": {
+            "session_boost": 0.15,
+            "conversion_boost": 0.005,
+            "quality_boost": 0.20
+        },
+        "AI Search Assistant": {
+            "session_boost": 0.25,
+            "conversion_boost": 0.010,
+            "quality_boost": 0.30
+        },
+        "AI Recommendations": {
+            "session_boost": -0.05,
+            "conversion_boost": -0.001,
+            "quality_boost": -0.08
+        }
+    }
+
+    effects = feature_effects.get(feature_name, {
+        "session_boost": 0.05,
+        "conversion_boost": 0.001,
+        "quality_boost": 0.05
+    })
+
     unique_users = df["user_id"].unique()
     treatment_users = set(
         np.random.choice(unique_users, size=len(unique_users) // 2, replace=False)
     )
 
-    # tag each row
     df = df.copy()
     df["feature"] = feature_name
     df["group"] = df["user_id"].apply(
@@ -41,9 +61,22 @@ def simulate_experiment(df, feature_name, launch_date="2017-01-01", seed=42):
         lambda d: "post" if d >= launch_date else "pre"
     )
 
-    # add week number relative to launch (useful for novelty effect detection later)
     df["weeks_since_launch"] = (
         (df["session_date"] - launch_date).dt.days // 7
+    )
+
+    # Inject realistic signal for treatment group post-launch
+    post_treatment = (df["group"] == "treatment") & (df["period"] == "post")
+
+    df.loc[post_treatment, "session_duration_seconds"] = (
+        df.loc[post_treatment, "session_duration_seconds"] *
+        (1 + effects["session_boost"] + np.random.normal(0, 0.02, post_treatment.sum()))
+    ).clip(lower=0)
+
+    df.loc[post_treatment, "converted"] = np.where(
+        np.random.random(post_treatment.sum()) 
+        (df.loc[post_treatment, "converted"].mean() + effects["conversion_boost"]),
+        1, df.loc[post_treatment, "converted"]
     )
 
     return df
