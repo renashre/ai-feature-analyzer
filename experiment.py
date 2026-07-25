@@ -41,11 +41,9 @@ def simulate_experiment(df, feature_name, launch_date="2017-01-01", seed=42):
         (1 + effects["session_boost"] + np.random.normal(0, 0.02, post_treatment.sum()))
     ).clip(lower=0)
 
-    df.loc[post_treatment, "converted"] = np.where(
-        np.random.random(post_treatment.sum()) 
-        (df.loc[post_treatment, "converted"].mean() + effects["conversion_boost"]),
-        1.0, df.loc[post_treatment, "converted"]
-    )
+    threshold = df.loc[post_treatment, "converted"].mean() + effects["conversion_boost"]
+    random_vals = np.random.random(post_treatment.sum())
+    df.loc[post_treatment, "converted"] = np.where(random_vals < threshold, 1.0, df.loc[post_treatment, "converted"])
 
     return df
 
@@ -57,8 +55,6 @@ def get_experiment_summary(df):
     print(df["group"].value_counts())
     print(f"\nPeriod split:")
     print(df["period"].value_counts())
-    print(f"\nSample of experiment data:")
-    print(df[["user_id", "session_date", "group", "period", "weeks_since_launch"]].head(10))
 
 
 if __name__ == "__main__":
