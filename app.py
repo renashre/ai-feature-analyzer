@@ -81,7 +81,7 @@ with st.sidebar:
     st.markdown("[GitHub](https://github.com/renashre/ai-feature-analyzer) · [LinkedIn](https://linkedin.com/in/renashrestha)")
 
 # ── Load data ─────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=3600, show_spinner="Loading 900K rows of GA data from BigQuery...")
+@st.cache_data(ttl=1, show_spinner="Loading 900K rows of GA data from BigQuery...")
 def get_data():
     return load_data()
 
