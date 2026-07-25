@@ -68,20 +68,17 @@ def simulate_experiment(df, feature_name, launch_date="2017-01-01", seed=42):
     # Inject realistic signal for treatment group post-launch
     post_treatment = (df["group"] == "treatment") & (df["period"] == "post")
 
-    df["session_duration_seconds"] = df["session_duration_seconds"].astype(float)
-
     df.loc[post_treatment, "session_duration_seconds"] = (
         df.loc[post_treatment, "session_duration_seconds"] *
         (1 + effects["session_boost"] + np.random.normal(0, 0.02, post_treatment.sum()))
     ).clip(lower=0)
 
-    df["converted"] = df["converted"].astype(float)
-
     df.loc[post_treatment, "converted"] = np.where(
         np.random.random(post_treatment.sum()) 
         (df.loc[post_treatment, "converted"].mean() + effects["conversion_boost"]),
-        1.0, df.loc[post_treatment, "converted"]
+        1, df.loc[post_treatment, "converted"]
     )
+
     return df
 
 
@@ -105,4 +102,3 @@ if __name__ == "__main__":
     df = load_data()
     df_exp = simulate_experiment(df, feature_name="AI Comment Suggestions")
     get_experiment_summary(df_exp)
-
